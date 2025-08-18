@@ -1,0 +1,49 @@
+name: cd-update-gitops
+description: Implements REST API to update gitops manifests.
+author: aditor@gmail.com
+
+branding:
+  icon: eye
+  color: red
+
+inputs:
+  gitops-branch:
+    description: 'GitOps branch to update'
+    required: true
+  new-tag:
+    required: true
+    description: 'Tag to deploy'
+  gitops-file:
+    description: 'GitOps mainfest to update'
+    required: true
+  environment:
+    description: 'Environment to deploy to'
+    required: true
+  image:
+    description: 'Image to deploy'
+    required: true
+  app:
+    description: 'Application name'
+    required: true
+  replicas:
+    description: 'Number of replicas to deploy'
+    required: false
+    default: '3'
+  rollback:
+    description: 'Rollback to previous version'
+    required: true
+    default: 'false'
+  dry-run:
+    description: 'Dry run mode, do not commit changes'
+    required: true
+    default: 'false'
+
+outputs:
+  report:
+    description: Prepare Docker Build Report
+  commit-id:
+    description: Commit ID of the GitOps commit
+
+runs:
+  using: node20
+  main: dist/index.js
