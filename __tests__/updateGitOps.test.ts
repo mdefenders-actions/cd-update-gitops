@@ -2,7 +2,7 @@ import { jest } from '@jest/globals'
 import * as core from '../__fixtures__/core.js'
 import * as fs from '../__fixtures__/fs.js'
 import { exec } from '../__fixtures__/exec.js'
-import {getInput} from "./getInput.js"
+import { getInput } from './getInput.js'
 
 jest.unstable_mockModule('@actions/core', () => core)
 jest.unstable_mockModule('fs/promises', () => fs)
@@ -83,26 +83,34 @@ describe('updateGitOps', () => {
   })
 
   it('creates branch if checkout fails', async () => {
-    let checkoutCalls = 0;
+    let checkoutCalls = 0
     exec.mockImplementation(async (cmd, args, opts) => {
       if (cmd === 'git' && args?.[0] === 'checkout') {
-        checkoutCalls++;
-        if (checkoutCalls === 1 && args.length === 2 && args[1] === 'feature-branch') {
+        checkoutCalls++
+        if (
+          checkoutCalls === 1 &&
+          args.length === 2 &&
+          args[1] === 'feature-branch'
+        ) {
           // Simulate branch does not exist: throw on first checkout
-          throw new Error('Branch does not exist');
+          throw new Error('Branch does not exist')
         }
         // Second call (with -b) should succeed
       }
       if (cmd === 'git' && args?.[0] === 'rev-parse') {
-        opts?.listeners?.stdout?.(Buffer.from('commit-sha1'));
+        opts?.listeners?.stdout?.(Buffer.from('commit-sha1'))
       }
-      return 0;
-    });
-    const result = await updateGitOps();
+      return 0
+    })
+    const result = await updateGitOps()
     // First checkout should be attempted and fail
-    expect(exec).toHaveBeenCalledWith('git', ['checkout', 'feature-branch']);
+    expect(exec).toHaveBeenCalledWith('git', ['checkout', 'feature-branch'])
     // Second checkout should create the branch
-    expect(exec).toHaveBeenCalledWith('git', ['checkout', '-b', 'feature-branch']);
-    expect(result).toBe('commit-sha1');
+    expect(exec).toHaveBeenCalledWith('git', [
+      'checkout',
+      '-b',
+      'feature-branch'
+    ])
+    expect(result).toBe('commit-sha1')
   })
 })
