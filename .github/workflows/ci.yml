@@ -1,0 +1,86 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test-typescript:
+    name: TypeScript Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install Dependencies
+        id: npm-ci
+        run: npm ci
+
+      - name: Check Format
+        id: npm-format-check
+        run: npm run format:check
+
+      - name: Lint
+        id: npm-lint
+        run: npm run lint
+
+      - name: Test
+        id: npm-ci-test
+        run: npm run ci-test
+
+  test-action:
+    name: GitHub Actions Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install Dependencies
+        id: npm-install
+        run: npm ci
+
+      - name: Test Local Action
+        id: test-action
+        uses: ./
+        with:
+          gitops-branch: main
+          new-tag: action-test-pr-31
+          gitops-file: deploy/environments/dev/values.yaml
+          environment: dev
+          image: mdefenders/it-delivers-everywhere
+          app: it-delivers-everywhere
+          replicas: 1
+          rollback: false
+          dry-run: false
+
+      - name: Print Report Output
+        run: |
+          echo "Report: ${{ steps.test-action.outputs.report }}"
+      - name: Print Commit ID Output
+        run: |
+          echo "Commit ID: ${{ steps.test-action.outputs.commit-id }}"
