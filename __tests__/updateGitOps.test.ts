@@ -113,4 +113,107 @@ describe('updateGitOps', () => {
     ])
     expect(result).toBe('commit-sha1')
   })
+
+  it('creates manifest from scratch if file does not exist (readFile throws)', async () => {
+    fs.readFile.mockImplementation(() => {
+      throw new Error('File not found')
+    })
+    exec.mockImplementation(async (cmd, args, opts) => {
+      if (cmd === 'git' && (args?.[0] ?? '') === 'rev-parse') {
+        opts?.listeners?.stdout?.(Buffer.from('commit-sha1'))
+      }
+      return 0
+    })
+    const result = await updateGitOps()
+    // Should write a manifest with only the updated service
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'deploy/environments/dev/values.yaml',
+      expect.stringContaining('services:')
+    )
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'deploy/environments/dev/values.yaml',
+      expect.stringContaining('my-app:')
+    )
+    expect(result).toBe('commit-sha1')
+  })
+  it('creates manifest from scratch if file is empty', async () => {
+    fs.readFile.mockResolvedValue('')
+    exec.mockImplementation(async (cmd, args, opts) => {
+      if (cmd === 'git' && (args?.[0] ?? '') === 'rev-parse') {
+        opts?.listeners?.stdout?.(Buffer.from('commit-sha1'))
+      }
+      return 0
+    })
+    const result = await updateGitOps()
+    // Should write a manifest with only the updated service
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'deploy/environments/dev/values.yaml',
+      expect.stringContaining('services:')
+    )
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'deploy/environments/dev/values.yaml',
+      expect.stringContaining('my-app:')
+    )
+    expect(result).toBe('commit-sha1')
+  })
+  it('creates manifest from scratch if file contains empty object', async () => {
+    fs.readFile.mockResolvedValue('')
+    exec.mockImplementation(async (cmd, args, opts) => {
+      if (cmd === 'git' && (args?.[0] ?? '') === 'rev-parse') {
+        opts?.listeners?.stdout?.(Buffer.from('commit-sha1'))
+      }
+      return 0
+    })
+    const result = await updateGitOps()
+    // Should write a manifest with only the updated service
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'deploy/environments/dev/values.yaml',
+      expect.stringContaining('services:')
+    )
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'deploy/environments/dev/values.yaml',
+      expect.stringContaining('my-app:')
+    )
+    expect(result).toBe('commit-sha1')
+  })
+  it('creates manifest from scratch if file contains empty object v2', async () => {
+    fs.readFile.mockResolvedValue('~')
+    exec.mockImplementation(async (cmd, args, opts) => {
+      if (cmd === 'git' && (args?.[0] ?? '') === 'rev-parse') {
+        opts?.listeners?.stdout?.(Buffer.from('commit-sha1'))
+      }
+      return 0
+    })
+    const result = await updateGitOps()
+    // Should write a manifest with only the updated service
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'deploy/environments/dev/values.yaml',
+      expect.stringContaining('services:')
+    )
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'deploy/environments/dev/values.yaml',
+      expect.stringContaining('my-app:')
+    )
+    expect(result).toBe('commit-sha1')
+  })
+  it('creates manifest from scratch if file contains empty object v3', async () => {
+    fs.readFile.mockResolvedValue('test: {}')
+    exec.mockImplementation(async (cmd, args, opts) => {
+      if (cmd === 'git' && (args?.[0] ?? '') === 'rev-parse') {
+        opts?.listeners?.stdout?.(Buffer.from('commit-sha1'))
+      }
+      return 0
+    })
+    const result = await updateGitOps()
+    // Should write a manifest with only the updated service
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'deploy/environments/dev/values.yaml',
+      expect.stringContaining('services:')
+    )
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'deploy/environments/dev/values.yaml',
+      expect.stringContaining('my-app:')
+    )
+    expect(result).toBe('commit-sha1')
+  })
 })
