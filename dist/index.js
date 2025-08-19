@@ -35121,6 +35121,7 @@ async function updateGitOps() {
         coreExports.info(`Branch ${gitOpsBrnach} does not exist, creating it.`);
         await execExports.exec('git', ['checkout', '-b', gitOpsBrnach]);
     }
+    await execExports.exec('git', ['pull']);
     // Add, commit, and push changes
     await execExports.exec('git', ['add', gitopsFile]);
     let committed = true;

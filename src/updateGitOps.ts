@@ -89,6 +89,7 @@ export async function updateGitOps(): Promise<string> {
     core.info(`Branch ${gitOpsBrnach} does not exist, creating it.`)
     await exec('git', ['checkout', '-b', gitOpsBrnach])
   }
+  await exec('git', ['pull'])
 
   // Add, commit, and push changes
   await exec('git', ['add', gitopsFile])
