@@ -43,6 +43,7 @@ export async function updateGitOps(): Promise<string> {
       }
     >
   }
+
   let manifest: GitOpsManifest = { services: {} }
   try {
     const fileContent = await fs.readFile(gitopsFile, 'utf8')
@@ -61,10 +62,6 @@ export async function updateGitOps(): Promise<string> {
     image: image,
     tag: newTag
   }
-
-  // Write updated manifest back to file
-  await fs.writeFile(gitopsFile, yaml.dump(manifest))
-  core.info(`Manifest updated: ${gitopsFile}`)
 
   // If dry-run, skip all git operations and return empty string
   if (dryRun) {
@@ -85,11 +82,14 @@ export async function updateGitOps(): Promise<string> {
   try {
     await exec('git', ['checkout', gitOpsBrnach])
     core.info(`Checked out branch: ${gitOpsBrnach}`)
+    await exec('git', ['pull'])
   } catch {
     core.info(`Branch ${gitOpsBrnach} does not exist, creating it.`)
     await exec('git', ['checkout', '-b', gitOpsBrnach])
   }
-  await exec('git', ['pull'])
+  // Write updated manifest back to file
+  await fs.writeFile(gitopsFile, yaml.dump(manifest))
+  core.info(`Manifest updated: ${gitopsFile}`)
 
   // Add, commit, and push changes
   await exec('git', ['add', gitopsFile])

@@ -35096,9 +35096,6 @@ async function updateGitOps() {
         image: image,
         tag: newTag
     };
-    // Write updated manifest back to file
-    await fs.writeFile(gitopsFile, dump(manifest));
-    coreExports.info(`Manifest updated: ${gitopsFile}`);
     // If dry-run, skip all git operations and return empty string
     if (dryRun) {
         coreExports.info('Dry-run mode enabled: skipping git operations.');
@@ -35116,12 +35113,15 @@ async function updateGitOps() {
     try {
         await execExports.exec('git', ['checkout', gitOpsBrnach]);
         coreExports.info(`Checked out branch: ${gitOpsBrnach}`);
+        await execExports.exec('git', ['pull']);
     }
     catch {
         coreExports.info(`Branch ${gitOpsBrnach} does not exist, creating it.`);
         await execExports.exec('git', ['checkout', '-b', gitOpsBrnach]);
     }
-    await execExports.exec('git', ['pull']);
+    // Write updated manifest back to file
+    await fs.writeFile(gitopsFile, dump(manifest));
+    coreExports.info(`Manifest updated: ${gitopsFile}`);
     // Add, commit, and push changes
     await execExports.exec('git', ['add', gitopsFile]);
     let committed = true;
