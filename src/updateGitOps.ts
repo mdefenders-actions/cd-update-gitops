@@ -2,6 +2,7 @@ import * as fs from 'fs/promises'
 import * as path from 'path'
 import * as core from '@actions/core'
 import { exec } from '@actions/exec'
+import * as yaml from 'js-yaml'
 
 /**
  * Updates a GitOps manifest file (values.yaml) with provided deployment values.
@@ -31,15 +32,38 @@ export async function updateGitOps(): Promise<string> {
   const dir = path.dirname(gitopsFile)
   await fs.mkdir(dir, { recursive: true })
 
-  // Prepare manifest content
-  const manifestContent =
-    `image: ${image}\n` +
-    `tag: ${newTag}\n` +
-    `app: ${app}\n` +
-    `replicas: ${replicas}\n`
+  // Read and update manifest YAML
+  interface GitOpsManifest {
+    services: Record<
+      string,
+      {
+        replicas: number
+        image: string
+        tag: string
+      }
+    >
+  }
+  let manifest: GitOpsManifest = { services: {} }
+  try {
+    const fileContent = await fs.readFile(gitopsFile, 'utf8')
+    if (fileContent.trim()) {
+      manifest = (yaml.load(fileContent) as GitOpsManifest) || { services: {} }
+    }
+    if (!manifest.services) manifest.services = {}
+  } catch {
+    // File does not exist or is empty, start with default
+    manifest = { services: {} }
+  }
 
-  // Write manifest to file (overwrite if exists)
-  await fs.writeFile(gitopsFile, manifestContent)
+  // Update or add the service section
+  manifest.services[app] = {
+    replicas: Number(replicas),
+    image: image,
+    tag: newTag
+  }
+
+  // Write updated manifest back to file
+  await fs.writeFile(gitopsFile, yaml.dump(manifest))
   core.info(`Manifest updated: ${gitopsFile}`)
 
   // If dry-run, skip all git operations and return empty string

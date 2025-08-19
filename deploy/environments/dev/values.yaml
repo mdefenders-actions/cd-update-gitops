@@ -1,4 +1,9 @@
-image: mdefenders/it-delivers-everywhere
-tag: action-test-pr-32
-app: it-delivers-everywhere
-replicas: 1
+services:
+  it-delivers-everywhere-qqq:
+    replicas: 1
+    image: mdefenders/it-delivers-everywhere
+    tag: action-test-pr-32
+  it-delivers-everywhere:
+    replicas: 1
+    image: mdefenders/it-delivers-everywhere
+    tag: action-test-pr-32
