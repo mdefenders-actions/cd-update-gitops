@@ -1,7 +1,7 @@
 # cd-update-gitops
 
 GitHub Action to update GitOps manifests, commit and push changes to a target
-branch, and generate a markdown deployment report.
+branch, and generate a Markdown deployment report.
 
 ## Features
 
@@ -10,7 +10,7 @@ branch, and generate a markdown deployment report.
 - Commits and pushes changes to a specified branch, creating it if it does not
   exist.
 - Supports dry-run mode to preview changes without committing.
-- Generates a markdown summary with a link to the commit.
+- Generates a Markdown summary with a link to the commit.
 - Handles ignored files by force-adding them if necessary.
 
 ## Usage
@@ -63,7 +63,7 @@ Add to your workflow:
 ## Notes
 
 - If your manifest file is ignored by `.gitignore`, the action will force-add it
-  to git.
+  to Git.
 - Uses `@actions/core` for logging and error handling.
 - Follows semantic versioning. Update `package.json` version for releases.
 
@@ -71,7 +71,7 @@ Add to your workflow:
 
 - Keep PRs focused and minimal.
 - Ensure tests and coverage requirements are met.
-- Update the README for any changes in functionality or usage.
+- Update the readme for any changes in functionality or usage.
 
 ## License
 
