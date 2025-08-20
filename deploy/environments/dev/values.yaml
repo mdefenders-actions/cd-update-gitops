@@ -6,7 +6,7 @@ services:
   it-delivers-everywhere:
     replicas: 1
     image: mdefenders/it-delivers-everywhere
-    tag: action-test-pr-31
+    tag: action-test-pr-32
   it-delivers-everywhere-3:
     replicas: 1
     image: mdefenders/it-delivers-everywhere
