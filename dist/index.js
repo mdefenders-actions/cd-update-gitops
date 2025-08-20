@@ -35074,37 +35074,6 @@ async function updateGitOps() {
     const app = coreExports.getInput('app', { required: true });
     const replicas = coreExports.getInput('replicas', { required: false });
     const dryRun = coreExports.getBooleanInput('dry-run', { required: false });
-    // Ensure gitopsFile and its parent folders exist
-    const dir = require$$1.dirname(gitopsFile);
-    await fs.mkdir(dir, { recursive: true });
-    let manifest = { services: {} };
-    try {
-        const fileContent = await fs.readFile(gitopsFile, 'utf8');
-        coreExports.info(`Current manifest: ${fileContent}`);
-        if (fileContent.trim()) {
-            manifest = load(fileContent) || { services: {} };
-            coreExports.info(`Parsed manifest: ${JSON.stringify(manifest)}`);
-        }
-        if (!manifest.services)
-            manifest.services = {};
-    }
-    catch {
-        // File does not exist or is empty, start with default
-        manifest = { services: {} };
-        coreExports.info(`Parsed manifest2: ${JSON.stringify(manifest)}`);
-    }
-    // Update or add the service section
-    manifest.services[app] = {
-        replicas: Number(replicas),
-        image: image,
-        tag: newTag
-    };
-    coreExports.info(`Parsed manifest3: ${JSON.stringify(manifest)}`);
-    // If dry-run, skip all git operations and return empty string
-    if (dryRun) {
-        coreExports.info('Dry-run mode enabled: skipping git operations.');
-        return '';
-    }
     // Git config
     await execExports.exec('git', ['config', '--global', 'user.name', 'github-actions[bot]']);
     await execExports.exec('git', [
@@ -35122,6 +35091,33 @@ async function updateGitOps() {
     catch {
         coreExports.info(`Branch ${gitOpsBrnach} does not exist, creating it.`);
         await execExports.exec('git', ['checkout', '-b', gitOpsBrnach]);
+    }
+    // Ensure gitopsFile and its parent folders exist
+    const dir = require$$1.dirname(gitopsFile);
+    await fs.mkdir(dir, { recursive: true });
+    let manifest = { services: {} };
+    try {
+        const fileContent = await fs.readFile(gitopsFile, 'utf8');
+        if (fileContent.trim()) {
+            manifest = load(fileContent) || { services: {} };
+        }
+        if (!manifest.services)
+            manifest.services = {};
+    }
+    catch {
+        // File does not exist or is empty, start with default
+        manifest = { services: {} };
+    }
+    // Update or add the service section
+    manifest.services[app] = {
+        replicas: Number(replicas),
+        image: image,
+        tag: newTag
+    };
+    // If dry-run, skip all git operations and return empty string
+    if (dryRun) {
+        coreExports.info('Dry-run mode enabled: skipping git commit/push operations.');
+        return '';
     }
     // Write updated manifest back to file
     await fs.writeFile(gitopsFile, dump(manifest));
