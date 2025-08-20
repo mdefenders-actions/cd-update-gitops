@@ -47,13 +47,16 @@ export async function updateGitOps(): Promise<string> {
   let manifest: GitOpsManifest = { services: {} }
   try {
     const fileContent = await fs.readFile(gitopsFile, 'utf8')
+    core.info(`Current manifest: ${fileContent}`)
     if (fileContent.trim()) {
       manifest = (yaml.load(fileContent) as GitOpsManifest) || { services: {} }
+      core.info(`Parsed manifest: ${JSON.stringify(manifest)}`)
     }
     if (!manifest.services) manifest.services = {}
   } catch {
     // File does not exist or is empty, start with default
     manifest = { services: {} }
+    core.info(`Parsed manifest2: ${JSON.stringify(manifest)}`)
   }
 
   // Update or add the service section
@@ -62,6 +65,7 @@ export async function updateGitOps(): Promise<string> {
     image: image,
     tag: newTag
   }
+  core.info(`Parsed manifest3: ${JSON.stringify(manifest)}`)
 
   // If dry-run, skip all git operations and return empty string
   if (dryRun) {

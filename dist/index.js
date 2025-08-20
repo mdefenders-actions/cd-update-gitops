@@ -35080,8 +35080,10 @@ async function updateGitOps() {
     let manifest = { services: {} };
     try {
         const fileContent = await fs.readFile(gitopsFile, 'utf8');
+        coreExports.info(`Current manifest: ${fileContent}`);
         if (fileContent.trim()) {
             manifest = load(fileContent) || { services: {} };
+            coreExports.info(`Parsed manifest: ${JSON.stringify(manifest)}`);
         }
         if (!manifest.services)
             manifest.services = {};
@@ -35089,6 +35091,7 @@ async function updateGitOps() {
     catch {
         // File does not exist or is empty, start with default
         manifest = { services: {} };
+        coreExports.info(`Parsed manifest2: ${JSON.stringify(manifest)}`);
     }
     // Update or add the service section
     manifest.services[app] = {
@@ -35096,6 +35099,7 @@ async function updateGitOps() {
         image: image,
         tag: newTag
     };
+    coreExports.info(`Parsed manifest3: ${JSON.stringify(manifest)}`);
     // If dry-run, skip all git operations and return empty string
     if (dryRun) {
         coreExports.info('Dry-run mode enabled: skipping git operations.');
