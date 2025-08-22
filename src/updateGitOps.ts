@@ -28,6 +28,25 @@ export async function updateGitOps(): Promise<string> {
   const replicas = core.getInput('replicas', { required: false })
   const dryRun = core.getBooleanInput('dry-run', { required: false })
 
+  // Git config
+  await exec('git', ['config', '--global', 'user.name', 'github-actions[bot]'])
+  await exec('git', [
+    'config',
+    '--global',
+    'user.email',
+    'github-actions[bot]@users.noreply.github.com'
+  ])
+
+  // Checkout or create the target branch
+  try {
+    await exec('git', ['checkout', gitOpsBrnach])
+    core.info(`Checked out branch: ${gitOpsBrnach}`)
+    await exec('git', ['pull'])
+  } catch {
+    core.info(`Branch ${gitOpsBrnach} does not exist, creating it.`)
+    await exec('git', ['checkout', '-b', gitOpsBrnach])
+  }
+
   // Ensure gitopsFile and its parent folders exist
   const dir = path.dirname(gitopsFile)
   await fs.mkdir(dir, { recursive: true })
@@ -43,6 +62,7 @@ export async function updateGitOps(): Promise<string> {
       }
     >
   }
+
   let manifest: GitOpsManifest = { services: {} }
   try {
     const fileContent = await fs.readFile(gitopsFile, 'utf8')
@@ -62,33 +82,15 @@ export async function updateGitOps(): Promise<string> {
     tag: newTag
   }
 
-  // Write updated manifest back to file
-  await fs.writeFile(gitopsFile, yaml.dump(manifest))
-  core.info(`Manifest updated: ${gitopsFile}`)
-
   // If dry-run, skip all git operations and return empty string
   if (dryRun) {
-    core.info('Dry-run mode enabled: skipping git operations.')
+    core.info('Dry-run mode enabled: skipping git commit/push operations.')
     return ''
   }
 
-  // Git config
-  await exec('git', ['config', '--global', 'user.name', 'github-actions[bot]'])
-  await exec('git', [
-    'config',
-    '--global',
-    'user.email',
-    'github-actions[bot]@users.noreply.github.com'
-  ])
-
-  // Checkout or create the target branch
-  try {
-    await exec('git', ['checkout', gitOpsBrnach])
-    core.info(`Checked out branch: ${gitOpsBrnach}`)
-  } catch {
-    core.info(`Branch ${gitOpsBrnach} does not exist, creating it.`)
-    await exec('git', ['checkout', '-b', gitOpsBrnach])
-  }
+  // Write updated manifest back to file
+  await fs.writeFile(gitopsFile, yaml.dump(manifest))
+  core.info(`Manifest updated: ${gitopsFile}`)
 
   // Add, commit, and push changes
   await exec('git', ['add', gitopsFile])

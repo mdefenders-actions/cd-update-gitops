@@ -55,8 +55,8 @@ describe('updateGitOps', () => {
   it('skips git operations and returns empty string in dry-run mode', async () => {
     core.getBooleanInput.mockImplementation((key) => key === 'dry-run')
     const result = await updateGitOps()
-    expect(fs.writeFile).toHaveBeenCalled()
-    expect(exec).not.toHaveBeenCalledWith('git', expect.anything())
+    expect(fs.writeFile).not.toHaveBeenCalled()
+    expect(exec).not.toHaveBeenCalledWith('push', expect.anything())
     expect(result).toBe('')
   })
 

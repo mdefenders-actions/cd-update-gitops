@@ -35074,6 +35074,24 @@ async function updateGitOps() {
     const app = coreExports.getInput('app', { required: true });
     const replicas = coreExports.getInput('replicas', { required: false });
     const dryRun = coreExports.getBooleanInput('dry-run', { required: false });
+    // Git config
+    await execExports.exec('git', ['config', '--global', 'user.name', 'github-actions[bot]']);
+    await execExports.exec('git', [
+        'config',
+        '--global',
+        'user.email',
+        'github-actions[bot]@users.noreply.github.com'
+    ]);
+    // Checkout or create the target branch
+    try {
+        await execExports.exec('git', ['checkout', gitOpsBrnach]);
+        coreExports.info(`Checked out branch: ${gitOpsBrnach}`);
+        await execExports.exec('git', ['pull']);
+    }
+    catch {
+        coreExports.info(`Branch ${gitOpsBrnach} does not exist, creating it.`);
+        await execExports.exec('git', ['checkout', '-b', gitOpsBrnach]);
+    }
     // Ensure gitopsFile and its parent folders exist
     const dir = require$$1.dirname(gitopsFile);
     await fs.mkdir(dir, { recursive: true });
@@ -35096,31 +35114,14 @@ async function updateGitOps() {
         image: image,
         tag: newTag
     };
+    // If dry-run, skip all git operations and return empty string
+    if (dryRun) {
+        coreExports.info('Dry-run mode enabled: skipping git commit/push operations.');
+        return '';
+    }
     // Write updated manifest back to file
     await fs.writeFile(gitopsFile, dump(manifest));
     coreExports.info(`Manifest updated: ${gitopsFile}`);
-    // If dry-run, skip all git operations and return empty string
-    if (dryRun) {
-        coreExports.info('Dry-run mode enabled: skipping git operations.');
-        return '';
-    }
-    // Git config
-    await execExports.exec('git', ['config', '--global', 'user.name', 'github-actions[bot]']);
-    await execExports.exec('git', [
-        'config',
-        '--global',
-        'user.email',
-        'github-actions[bot]@users.noreply.github.com'
-    ]);
-    // Checkout or create the target branch
-    try {
-        await execExports.exec('git', ['checkout', gitOpsBrnach]);
-        coreExports.info(`Checked out branch: ${gitOpsBrnach}`);
-    }
-    catch {
-        coreExports.info(`Branch ${gitOpsBrnach} does not exist, creating it.`);
-        await execExports.exec('git', ['checkout', '-b', gitOpsBrnach]);
-    }
     // Add, commit, and push changes
     await execExports.exec('git', ['add', gitopsFile]);
     let committed = true;
