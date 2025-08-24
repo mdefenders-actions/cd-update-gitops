@@ -16,9 +16,6 @@ inputs:
   gitops-file:
     description: 'GitOps mainfest to update'
     required: true
-  environment:
-    description: 'Environment to deploy to'
-    required: true
   image:
     description: 'Image to deploy'
     required: true

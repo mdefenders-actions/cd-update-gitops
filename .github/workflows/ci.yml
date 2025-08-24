@@ -71,7 +71,6 @@ jobs:
           gitops-branch: main
           new-tag: action-test-pr-31
           gitops-file: deploy/environments/dev/values.yaml
-          environment: dev
           image: mdefenders/it-delivers-everywhere
           app: it-delivers-everywhere
           replicas: 1
